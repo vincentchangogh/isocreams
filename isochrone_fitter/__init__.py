@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
 #have this module exisiting in the same directory this __init__ file before using this script
-import read_mist_models
 
-from __future__ import division
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -53,7 +51,7 @@ def load_isochrones(filename):
         padova isochrones from <http://pleiadi.pd.astro.it/>
     """
     # file used pn local device test <r"C:\Users\kdror\Documents\PhD year 1\python learning of PhD year 1\python September workshop\group_proj_repository\isocreams\iso_jc_z008s.csv">
-    isochrone_table=pd.read_csv(filename,sep="\s+|s+",index_col=False)
+    isochrone_table=pd.read_csv(filename,sep="\s+|s+",index_col=False,engine="python")
     return isochrone_table
 
 def load_multiple_isochrones(filepath,filenames):
