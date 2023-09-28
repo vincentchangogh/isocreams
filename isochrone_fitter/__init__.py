@@ -2,7 +2,7 @@
 
 #have this module exisiting in the same directory this __init__ file before using this script
 
-
+#from __future__ import division
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -95,3 +95,89 @@ def load_multiple_isochrones(filepath,filenames):
 def isochrone_fitting(isochrone_dict,data):
     for model in list(isochrone_dict.keys()):
         for star in 
+
+def star_and_isochrone_plotter(stellar_lib,isochrones_dictionary)
+    df_clean=stellar_lib
+
+    # Rows that do not meet the condition alpha + num are eliminated
+    f = lambda s: (len(s) >= 2)  and (s[0].isalpha()) and (s[1].isdigit())
+    i  = df_clean['SpType'].apply(f)
+    df_clean = df_clean[i]
+
+    # A new column is created with the first two characters from 'SpType'
+    f = lambda s: s[0:2]
+    df_clean['SpType2'] = df_clean['SpType'].apply(f)
+
+    # Remove the lines containing special classes C, N, R, S
+    f = lambda s: s[0] in 'OBAFGKM'
+    df_clean = df_clean[df_clean['SpType'].map(f)]
+
+    f = lambda s: s[0]
+    clases = df_clean['SpType'].map(f)
+
+    # Replace the letters with digits because we want them to appear in
+    # a certain order
+    orden = {'O':'0', 'B':'1', 'A':'2', 'F':'3', 'G':'4', 'K':'5', 'M':'6'}
+    f = lambda s: orden[s[0]]+s[1]
+    df_clean['SpType2'] = df_clean['SpType2'].apply(f)
+
+    # Plot the stars, with different star classes in different colours
+    def plot_lum_class(b,c, label):
+        ''' b: boolean Series to make the selection
+            c: Color
+            label: for the legend
+        '''
+        x = df_clean['B-V'][b]
+        y = df_clean['M_V'][b]
+        ax.scatter(x, y, c = c, s=6, edgecolors='none', label = label)
+
+    fig = plt.figure(figsize=(8,10))
+    ax = fig.add_subplot(111)
+
+    ax.set_xlim(-0.5, 2.5)
+    ax.set_ylim(15, -15)
+    ax.grid()
+    ax.set_title('H-R Diagram \n (Hipparcos catalog)')
+
+    ax.title.set_fontsize(20)
+    ax.set_xlabel('Color index B-V')
+    ax.xaxis.label.set_fontsize(20)
+    ax.set_ylabel('Absolute magnitude')
+    ax.yaxis.label.set_fontsize(20)
+
+    f = lambda s: 'VII' in s
+    b = df_clean['SpType'].map(f)
+    plot_lum_class(b,'green', 'VII: white dwarfs')
+
+    f = lambda s: ('VI' in s) and ('VII' not in s)
+    b = df_clean['SpType'].map(f)
+    plot_lum_class(b,'blue', 'VI: subdwarfs')
+
+    f = lambda s: ('V' in s) and ('VI' not in s) and ('IV' not in s)
+    b = df_clean['SpType'].map(f)
+    plot_lum_class(b,'black', 'V: main-sequence')
+
+    f = lambda s: 'IV' in s
+    b = df_clean['SpType'].map(f)
+    plot_lum_class(b,'grey', 'IV: subgiants')
+
+    f = lambda s: 'III' in s
+    b = df_clean['SpType'].map(f)
+    plot_lum_class(b,'orange', 'III: giants')
+
+    f = lambda s: ('II' in s) and ('III' not in s) and ('VII' not in s)
+    b = df_clean['SpType'].map(f)
+    plot_lum_class(b,'yellow', 'II: bright giants')
+
+    f = lambda s: ('I' in s) and ('II' not in s) and ('V' not in s)
+    b = df_clean['SpType'].map(f)
+    plot_lum_class(b,'red', 'I: supergiants')
+
+    ax.tick_params(axis='both', labelsize=14)
+    legend = ax.legend(scatterpoints=1,markerscale = 6, shadow=True)
+    frame = legend.get_frame()
+    frame.set_facecolor('0.90')
+
+    for isochrone in list(isochrones_dictionary.keys()):
+        plt.plot(isochrones_dictionary[isochrone]["M_b"]-isochrones_dictionary[isochrone]["M_v"],isochrones_dictionary[isochrone]["M_y"],label=isochrone)
+    plt.show()
