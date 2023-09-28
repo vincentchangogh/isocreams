@@ -24,6 +24,7 @@ def load_stellar_lib(filename): #this function largely contains some commands fr
     df_clean['B-V'] = df_clean['B-V'].astype(np.float)
     # Add a new column with the absolute magnitude
     df_clean['M_V'] = df_clean['Vmag'] + 5 * np.log10(df_clean['Plx']/100.)
+    return df_clean
 
 def load_isochrones(filename):
     r"""Summarize the function in one line.
@@ -90,3 +91,7 @@ def load_multiple_isochrones(filepath,filenames):
     for filename in filenames:
         isochrones_dictionary[filename]=load_isochrones(filepath+filename)
     return isochrones_dictionary
+
+def isochrone_fitting(isochrone_dict,data):
+    for model in list(isochrone_dict.keys()):
+        for star in 
