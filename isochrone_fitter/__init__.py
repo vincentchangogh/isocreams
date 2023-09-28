@@ -1,6 +1,26 @@
 #!/usr/bin/python
 
 #have this module exisiting in the same directory this __init__ file before using this script
+"""
+Isocreams is an isochrone fitter. It features a module that can be used to input data files containing various absolute magnitudes, and obtain a graph containing isochrones from the relevant filters.
+
+For the purposes of this exercise, we are using absolute magnitudes in the B and V bands.
+
+Under the folder isochrone_fitter, we have a module containing functions that can be used to load a stellar library, which will then load the isochrones, and then plot them.
+
+
+
+disclaimer
+-------------------
+- this package has only been tested in ipython: using this package in jupyter notebook or other itterations of python may yeild erronious results.
+references
+------------------
+Blog spot for the majority of code used to create the HR diagram:
+http://balbuceosastropy.blogspot.com/2014/03/construction-of-hertzsprung-russell.html
+HIPPARCOS Catalogue of stars for the HR diagram: 
+http://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/239/hip_main 
+"""
+
 
 #from __future__ import division
 import matplotlib.pyplot as plt
@@ -12,11 +32,40 @@ STELLAR_LIB_FILENAME = r'../Hipparcos/I_239_selection.tsv'
 ISOCRHRONE_FILENAME=r"...\isocreams\ISOCHRONE_DATA.cmd"
 
 def load_stellar_lib(filename): #this function largely contains some commands from "http://balbuceosastropy.blogspot.com/2014/03/construction-of-hertzsprung-russell.html"
+    r"""Summarize the function in one line.
+
+    imports a Hipparcos stellar database datafile as pd dataframes
+
+    Parameters
+    ----------
+    filepath : string
+        the directory + filename that your downloaded hipparcos database is saved to
+
+    Returns
+    -------
+    pandas dataframe
+        this contains the data of the downloaded Hipparcos database
+
+    See Also
+    --------
+        when downloading hippacos data, ensure that the following parameters are checked in the VizieR search page:
+            H1 identifier: HIP
+            H5 V Johnson magnitude: Vmag
+            H11 Trigonometric parallax (units of milliarcsec): Plx
+            H37 Colour index: B-V
+            H76 Spectral type: SpType
+        These parameters are then used to obtain an absolute magnitude and to plot the HR diagram using the function "star_and_isochrone_plotter"
+
+    References
+    ----------
+        HIPPARCOS Catalogue of stars for the HR diagram: 
+        http://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=I/239/hip_main 
+    """
     df = pd.read_table(filename, skiprows=52, sep=';', header=None, index_col=0,
                        names = ['HIP', 'Vmag', 'Plx', 'B-V', 'SpType'],
                        skipfooter=1, engine='python')
     
-    df_clean = df.applymap(lambda x: np.nan if isinstance(x, basestring)
+    df_clean = df.applymap(lambda x: np.nan if isinstance(x, str)
                        and x.isspace() else x)
     df_clean= df_clean.dropna()
     df_clean['Vmag'] = df_clean['Vmag'].astype(np.float)
@@ -43,7 +92,7 @@ def load_isochrones(filename):
 
     See Also
     --------
-        the files loaded by this code are downloaded from <http://pleiadi.pd.astro.it/> (from the"solar_scaled" option). "iso_jc_z008s.dat" were used for testing. 
+        the files loaded by this code are downloaded from <http://pleiadi.pd.astro.it/#data5> (from the"solar_scaled" option for z=0.008 and y=0.250). "iso_jc_z008s.dat" were used for testing. 
         This file must be separated out into numerous smaller files to be managed by this command: each file may only contain one header: the hashtag from this header must
         be removed, and only one line of said header (the line specifying the name of each column) may be kept
 
@@ -92,11 +141,30 @@ def load_multiple_isochrones(filepath,filenames):
         isochrones_dictionary[filename]=load_isochrones(filepath+filename)
     return isochrones_dictionary
 
-def isochrone_fitting(isochrone_dict,data):
-    for model in list(isochrone_dict.keys()):
-        for star in 
 
-def star_and_isochrone_plotter(stellar_lib,isochrones_dictionary)
+
+def star_and_isochrone_plotter(stellar_lib,isochrones_dictionary):
+    r"""Summarize the function in one line.
+
+    creates plot combining input stellar libraries and isochrone data
+
+    Parameters
+    ----------
+    stellar_lib : pandas dataframe
+        a dataframe that has been returned from the isochrone_fitter.load_stellar_lib() function
+    isochrones_dictionary : dictionary
+        a dictionary that has been returned from the isochrone_fitter.load_multiple_isochrones() function
+
+    Returns
+    -------
+    plot
+        this plot will display the full stellar library selected in scatter points, with a legend refering to different stellar populations. Isochrones are plotted in white, and their log
+        age is labeled at the end of each isocrone
+
+    References
+    ----------
+    majority of code for plotter from <http://balbuceosastropy.blogspot.com/2014/03/construction-of-hertzsprung-russell.html>
+    """
     df_clean=stellar_lib
 
     # Rows that do not meet the condition alpha + num are eliminated
@@ -129,7 +197,8 @@ def star_and_isochrone_plotter(stellar_lib,isochrones_dictionary)
         '''
         x = df_clean['B-V'][b]
         y = df_clean['M_V'][b]
-        ax.scatter(x, y, c = c, s=6, edgecolors='none', label = label)
+        ax.scatter(x, y, c = c, s=6, edgecolors='none', label = label, alpha=0.35)
+        ax.set_facecolor("grey")
 
     fig = plt.figure(figsize=(8,10))
     ax = fig.add_subplot(111)
@@ -140,9 +209,9 @@ def star_and_isochrone_plotter(stellar_lib,isochrones_dictionary)
     ax.set_title('H-R Diagram \n (Hipparcos catalog)')
 
     ax.title.set_fontsize(20)
-    ax.set_xlabel('Color index B-V')
+    ax.set_xlabel('Color index (B-V)')
     ax.xaxis.label.set_fontsize(20)
-    ax.set_ylabel('Absolute magnitude')
+    ax.set_ylabel('M_V')
     ax.yaxis.label.set_fontsize(20)
 
     f = lambda s: 'VII' in s
@@ -179,5 +248,12 @@ def star_and_isochrone_plotter(stellar_lib,isochrones_dictionary)
     frame.set_facecolor('0.90')
 
     for isochrone in list(isochrones_dictionary.keys()):
-        plt.plot(isochrones_dictionary[isochrone]["M_b"]-isochrones_dictionary[isochrone]["M_v"],isochrones_dictionary[isochrone]["M_y"],label=isochrone)
+        plt.plot(isochrones_dictionary[isochrone]["Mb"]-isochrones_dictionary[isochrone]["Mv"],isochrones_dictionary[isochrone]["Mv"],label=isochrone,color="white")
+        plt.text(list(isochrones_dictionary[isochrone]["Mb"]-isochrones_dictionary[isochrone]["Mv"])[-1],list(isochrones_dictionary[isochrone]["Mv"])[-1],list(isochrones_dictionary[isochrone]["log(age/yr)"])[-1],color="black")
     plt.show()
+
+if __name__ == "__main__":
+    print("running example")
+    stellar_lib=load_stellar_lib("data/I_239_selection.tsv")
+    isochrone_dict=load_multiple_isochrones("data/",["iso_jc_z008s_age_070.dat","iso_jc_z008s_age_075.dat","iso_jc_z008s_age_080.dat","iso_jc_z008s_age_085.dat","iso_jc_z008s_age_090.dat","iso_jc_z008s_age_095.dat","iso_jc_z008s_age_100.dat"])
+    star_and_isochrone_plotter(stellar_lib,isochrone_dict)
